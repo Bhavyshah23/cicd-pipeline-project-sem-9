@@ -33,18 +33,20 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'maven'
+
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('cicd-pipeline/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Build with Maven
         run: mvn clean compile -f cicd-pipeline/pom.xml
 
       - name: Run Unit Tests
-        run: mvn test -f cicd-pipeline/pom.xml
-          -Dspring.datasource.url=jdbc:h2:mem:testdb
-          -Dspring.datasource.driver-class-name=org.h2.Driver
-          -Dspring.datasource.username=sa
-          -Dspring.datasource.password=
-          -Dspring.jpa.hibernate.ddl-auto=create-drop
+        run: mvn test -f cicd-pipeline/pom.xml -Dspring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1 -Dspring.datasource.driver-class-name=org.h2.Driver -Dspring.datasource.username=sa -Dspring.datasource.password="" -Dspring.jpa.hibernate.ddl-auto=create-drop
 
       - name: Package Application
         run: mvn package -DskipTests -f cicd-pipeline/pom.xml
@@ -71,7 +73,14 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'maven'
+
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('cicd-pipeline/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Run Code Quality Checks
         run: |
@@ -94,7 +103,14 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'maven'
+
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('cicd-pipeline/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Package Application
         run: mvn package -DskipTests -f cicd-pipeline/pom.xml
