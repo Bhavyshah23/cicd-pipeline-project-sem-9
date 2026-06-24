@@ -11,10 +11,12 @@ on:
     branches:
       - main
       - develop
+      - feature/github-actions
   pull_request:
     branches:
       - main
       - develop
+      - feature/github-actions
 
 jobs:
 
