@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Real-time CI/CD monitoring dashboard for cloud infrastructure health, capacity, and performance insights.">
         <title>CI/CD Pipeline Monitoring Dashboard</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -13,7 +14,7 @@
             <!-- Header -->
             <header class="header">
                 <div class="header-content">
-                    <h1>☁️ Cloud CI/CD Monitoring Dashboard</h1>
+                    <h1>Cloud CI/CD Monitoring Dashboard</h1>
                     <p class="subtitle">M.Sc. IT — Cloud & Application Development Project</p>
                 </div>
                 <div class="last-updated">
@@ -22,7 +23,7 @@
             </header>
 
             <!-- Status Cards -->
-            <div class="status-cards">
+            <section class="status-cards" aria-label="Infrastructure status summary">
                 <div class="card" id="app-status-card">
                     <div class="card-icon">🟢</div>
                     <div class="card-content">
@@ -54,17 +55,17 @@
                         <p id="health-check-type">--</p>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <!-- CPU Chart -->
-            <div class="chart-section">
-                <h2>📈 CPU Utilization (Last 30 Minutes)</h2>
+            <section class="chart-section">
+                <h2>CPU Utilization (Last 30 Minutes)</h2>
                 <canvas id="cpuChart"></canvas>
-            </div>
+            </section>
 
             <!-- Instances Table -->
-            <div class="table-section">
-                <h2>🖥️ Running EC2 Instances</h2>
+            <section class="table-section">
+                <h2>Running EC2 Instances</h2>
                 <table id="instances-table">
                     <thead>
                         <tr>
@@ -78,7 +79,7 @@
                         <tr><td colspan="4">Loading instances...</td></tr>
                     </tbody>
                 </table>
-            </div>
+            </section>
 
             <footer class="footer">
                 <p>Auto-refreshing every 15 seconds | Cloud-Native CI/CD Pipeline Project</p>
