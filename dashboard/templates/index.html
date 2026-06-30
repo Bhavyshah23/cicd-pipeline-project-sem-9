@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Real-time CI/CD monitoring dashboard for cloud infrastructure health, capacity, and performance insights.">
+        <title>CI/CD Pipeline Monitoring Dashboard</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    </head>
+    <body>
+        <div class="dashboard-container">
+
+            <!-- Header -->
+            <header class="header">
+                <div class="header-content">
+                    <h1>Cloud CI/CD Monitoring Dashboard</h1>
+                    <p class="subtitle">M.Sc. IT — Cloud & Application Development Project</p>
+                </div>
+                <div class="last-updated">
+                    Last updated: <span id="timestamp">Loading...</span>
+                </div>
+            </header>
+
+            <!-- Status Cards -->
+            <section class="status-cards" aria-label="Infrastructure status summary">
+                <div class="card" id="app-status-card">
+                    <div class="card-icon">🟢</div>
+                    <div class="card-content">
+                        <h3>Application Status</h3>
+                        <p id="app-status-text">Checking...</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">🖥️</div>
+                    <div class="card-content">
+                        <h3>Active Instances</h3>
+                        <p id="instance-count">--</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <div class="card-content">
+                        <h3>Min / Desired / Max</h3>
+                        <p id="capacity-range">-- / -- / --</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">⚡</div>
+                    <div class="card-content">
+                        <h3>Health Check Type</h3>
+                        <p id="health-check-type">--</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CPU Chart -->
+            <section class="chart-section">
+                <h2>CPU Utilization (Last 30 Minutes)</h2>
+                <canvas id="cpuChart"></canvas>
+            </section>
+
+            <!-- Instances Table -->
+            <section class="table-section">
+                <h2>Running EC2 Instances</h2>
+                <table id="instances-table">
+                    <thead>
+                        <tr>
+                            <th>Instance ID</th>
+                            <th>State</th>
+                            <th>Health</th>
+                            <th>Availability Zone</th>
+                        </tr>
+                    </thead>
+                    <tbody id="instances-tbody">
+                        <tr><td colspan="4">Loading instances...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <footer class="footer">
+                <p>Auto-refreshing every 15 seconds | Cloud-Native CI/CD Pipeline Project</p>
+            </footer>
+        </div>
+
+        <script>
+            let cpuChart;
+
+            function initChart() {
+                const ctx = document.getElementById('cpuChart').getContext('2d');
+                cpuChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'CPU Utilization (%)',
+                            data: [],
+                            borderColor: '#2E75B6',
+                            backgroundColor: 'rgba(46, 117, 182, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: { display: true, text: 'CPU %' }
+                            },
+                            x: {
+                                title: { display: true, text: 'Time' }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: true }
+                        }
+                    }
+                });
+            }
+
+            function updateDashboard() {
+                fetch('/api/dashboard-data')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update timestamp
+                        document.getElementById('timestamp').textContent = data.timestamp;
+
+                        // Update app status
+                        const statusText = document.getElementById('app-status-text');
+                        const statusCard = document.getElementById('app-status-card');
+                        if (data.app_status.status === 'healthy') {
+                            statusText.textContent = '✅ Running Successfully';
+                            statusCard.querySelector('.card-icon').textContent = '🟢';
+                        } else {
+                            statusText.textContent = '❌ ' + data.app_status.message;
+                            statusCard.querySelector('.card-icon').textContent = '🔴';
+                        }
+
+                        // Update instance count
+                        document.getElementById('instance-count').textContent =
+                            data.instance_count.current + ' / ' + data.instance_count.max;
+
+                        document.getElementById('capacity-range').textContent =
+                            data.instance_count.min + ' / ' + data.instance_count.desired + ' / ' + data.instance_count.max;
+
+                        // Update health check type
+                        document.getElementById('health-check-type').textContent =
+                            data.asg_info.health_check_type || '--';
+
+                        // Update CPU chart
+                        cpuChart.data.labels = data.cpu_usage.labels;
+                        cpuChart.data.datasets[0].data = data.cpu_usage.values;
+                        cpuChart.update();
+
+                        // Update instances table
+                        const tbody = document.getElementById('instances-tbody');
+                        if (data.instances.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="4">No instances running</td></tr>';
+                        } else {
+                            tbody.innerHTML = data.instances.map(inst => `
+                                <tr>
+                                    <td>${inst.id}</td>
+                                    <td><span class="badge badge-${inst.state}">${inst.state}</span></td>
+                                    <td><span class="badge badge-${inst.health.toLowerCase()}">${inst.health}</span></td>
+                                    <td>${inst.az}</td>
+                                </tr>
+                            `).join('');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching dashboard data:', error);
+                    });
+            }
+
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', () => {
+                initChart();
+                updateDashboard();
+                setInterval(updateDashboard, 15000); // Refresh every 15 seconds
+            });
+        </script>
+    </body>
+</html>
