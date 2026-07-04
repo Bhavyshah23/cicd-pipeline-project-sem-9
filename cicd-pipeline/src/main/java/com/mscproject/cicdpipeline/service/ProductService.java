@@ -31,12 +31,13 @@ public class ProductService {
 
     // Update existing product
     public Product updateProduct(Long id, Product updatedProduct) {
-        return productRepository.findById(id).map(product -> {
-            product.setName(updatedProduct.getName());
-            product.setDescription(updatedProduct.getDescription());
-            product.setPrice(updatedProduct.getPrice());
-            product.setQuantity(updatedProduct.getQuantity());
-            return productRepository.save(product);
+    return productRepository.findById(id).map(product -> {
+        product.setName(updatedProduct.getName());
+        product.setDescription(updatedProduct.getDescription());
+        product.setPrice(updatedProduct.getPrice());
+        product.setQuantity(updatedProduct.getQuantity());
+        product.setCategory(updatedProduct.getCategory()); // ← this line was missing
+        return productRepository.save(product);
         }).orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
     }
 
