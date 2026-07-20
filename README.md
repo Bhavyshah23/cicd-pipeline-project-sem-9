@@ -1,67 +1,40 @@
-☁️ CloudCart — E-Commerce Platform with CI/CD Pipeline & Agentic AI Assistant
+☁️ Cloud-Native CI/CD Pipeline with Auto-Scaling & Real-Time Monitoring Dashboard
 ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-Spring%20Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
-![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![AI](https://img.shields.io/badge/Agentic%20AI-Chat%20Assistant-purple?style=for-the-badge)
+![AWS](https://img.shields.io/badge/AWS-Cloud%20Deployed-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
+![Python](https://img.shields.io/badge/Python-Dashboard-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-In%20Progress-yellow?style=for-the-badge)
-
-> **M.Sc. IT — Cloud & Application Development | 4-Credit Capstone Project**
-> An e-commerce platform (CloudCart) with an automated CI/CD pipeline and an agentic AI assistant that lets admins query stock, orders, users, and delivery status in plain English — plus proactive alerts for issues that need attention.
-
+> **M.Sc. IT — Cloud & Application Development | 4-Credit Project**  
+> A fully automated DevOps pipeline that builds, tests, containerizes, and deploys a Java Spring Boot application to AWS — with real-time monitoring.
 ---
-
-## 📌 Table of Contents
-- [About the Project](#-about-the-project)
-- [Current Project Status](#-current-project-status)
-- [Architecture](#-architecture)
-- [Tech Stack](#-tech-stack)
-- [Project Modules](#-project-modules)
-- [AI Assistant — Capstone Extension](#-ai-assistant--capstone-extension)
-- [CI/CD Pipeline Flow (Planned)](#-cicd-pipeline-flow-planned)
-- [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [Team Members](#-team-members)
-- [Project Timeline](#-project-timeline)
-- [Future Enhancements](#-future-enhancements)
-
+📌 Table of Contents
+About the Project
+Architecture
+Tech Stack
+Project Modules
+CI/CD Pipeline Flow
+Monitoring Dashboard
+Getting Started
+Environment Variables
+Team Members
+Project Timeline
+Future Enhancements
 ---
-
-## 📖 About the Project
-
-CloudCart is a full-stack e-commerce admin platform built with Spring Boot and React. This capstone project extends it with two things: an automated CI/CD pipeline (build, test, containerize, deploy), and an **agentic AI assistant** that lets admins ask natural-language questions about stock, orders, users, and deliveries instead of manually navigating screens and filters.
-
-**What it does (once complete):**
-1. A developer pushes code to GitHub
-2. GitHub Actions automatically builds, tests, and containerizes the app
-3. The container is deployed (target hosting TBD — see [Future Enhancements](#-future-enhancements))
-4. An admin opens a chat panel in the CloudCart dashboard and asks questions like *"Which products are low on stock?"* or *"Show me undelivered orders from this week"*
-5. The AI assistant reasons over the request, safely queries the existing backend, and responds in plain English — and can proactively flag issues (e.g. low stock) without being asked
-
-**Why it matters:** This demonstrates both solid DevOps fundamentals (CI/CD automation) and practical Generative AI / Agentic AI skills applied to a real operational problem, not just a toy chatbot demo.
-
+📖 About the Project
+This project implements a production-grade DevOps system that automates the full software delivery lifecycle using industry-standard tools and AWS cloud services.
+What it does:
+A developer pushes code to GitHub
+GitHub Actions automatically builds, tests, and scans the code
+The app is packaged into a Docker container and pushed to AWS ECR
+The container is deployed to AWS EC2 without any manual steps
+An Auto Scaling Group adds/removes servers based on live traffic
+A Python dashboard shows real-time server health and metrics
+AWS SNS sends email/SMS alerts if anything goes wrong
+Why it matters:
+This is exactly how companies like Netflix, Amazon, and Google deploy software — thousands of times per day, automatically, with zero downtime.
 ---
-
-## ✅ Current Project Status
-
-To keep this accurate and up to date:
-
-| Component | Status |
-|---|---|
-| Spring Boot backend (Product, Order, Category, User models, JWT auth) | ✅ Done |
-| React frontend (protected routes, admin dashboard) | ✅ Done |
-| CI/CD pipeline (GitHub Actions) | 🔲 Not started |
-| Dockerization | 🔲 Not started |
-| Cloud deployment | 🔲 Not started |
-| AI Assistant — Query Understanding & Data Retrieval Agents | 🔲 Not started |
-| AI Assistant — Proactive Alerts Agent | 🔲 Not started |
-
-> Infrastructure-as-Code (Terraform) is intentionally out of scope for this project — see [Future Enhancements](#-future-enhancements).
-
----
-
-## 🏗️ Architecture
-
+🏗️ Architecture
 ```
 Developer (Code Push)
         │
@@ -72,95 +45,73 @@ Developer (Code Push)
   GitHub Actions CI/CD Pipeline
   ┌─────────────────────────────────────────┐
   │  Build → Test → Code Quality → Docker  │
-  │              Build → Deploy            │
+  │         Build → Push to ECR → Deploy   │
   └─────────────────────────────────────────┘
         │
         ▼
-   CloudCart Application
-  ┌──────────────────────────────────────────────┐
-  │   React Frontend (Admin Dashboard + Chat UI)  │
-  │                   │                           │
-  │        Spring Boot Backend (REST API)         │
-  │                   │                           │
-  │              MySQL Database                   │
-  │                   │                           │
-  │         AI Assistant Service (Agentic)        │
-  │   Query Understanding → Data Retrieval →       │
-  │        Response Generation → Proactive Alerts │
-  └──────────────────────────────────────────────┘
+   AWS Cloud Infrastructure
+  ┌──────────────────────────────────────┐
+  │         Application Load Balancer    │
+  │                   │                  │
+  │    ┌──────────────┼──────────────┐   │
+  │    ▼              ▼              ▼   │
+  │  EC2 #1        EC2 #2        EC2 #3  │
+  │  (Spring)      (Spring)     (Spring) │
+  │    └──────────────┼──────────────┘   │
+  │              Auto Scaling            │
+  │                   │                  │
+  │              AWS RDS (MySQL)         │
+  └──────────────────────────────────────┘
+        │
+        ▼
+  Monitoring Layer
+  ┌─────────────────────────────┐
+  │  AWS CloudWatch → Python    │
+  │  Flask Dashboard (Chart.js) │
+  │  AWS SNS Alerts             │
+  └─────────────────────────────┘
 ```
-
 ---
-
-## 🛠️ Tech Stack
-
-| Layer | Technology | Purpose |
-|---|---|---|
-| Backend | Java 17, Spring Boot, Maven | REST API application |
-| Database | MySQL | Application data (products, orders, users) |
-| Frontend | React, React Router v6 | Admin dashboard + chat interface |
-| Containerization | Docker | Package the application |
-| CI/CD | GitHub Actions | Build, test, and deployment automation |
-| AI / Agentic Layer | LLM API (Claude/GPT), Python or Spring Boot service | Natural language query understanding, response generation, proactive insights |
-| Version Control | Git, GitHub | Source code management |
-
+🛠️ Tech Stack
+Layer	Technology	Purpose
+Backend	Java 17, Spring Boot, Maven	REST API application
+Database	MySQL, AWS RDS	Cloud-managed database
+Containerization	Docker, AWS ECR	Package & store images
+CI/CD	GitHub Actions, SonarQube	Automation & code quality
+Cloud Compute	AWS EC2, Auto Scaling Group	App hosting & scaling
+Load Balancing	AWS ALB	Traffic distribution
+Storage	AWS S3	Logs & static files
+Monitoring	AWS CloudWatch	Metrics collection
+Dashboard	Python, Flask, Chart.js	Real-time monitoring UI
+Alerts	AWS SNS	Email/SMS notifications
+Version Control	Git, GitHub	Source code management
 ---
-
-## 📦 Project Modules
-
-**Module 1 — Spring Boot REST API** *(Jeel Prajapati)*
-- CRUD REST API built with Spring Boot
-- Connected to MySQL database
-- JWT-based authentication
-- Endpoints: `GET /products`, `POST /products`, `PUT /products/{id}`, `DELETE /products/{id}`, plus Order and User endpoints
-
-**Module 2 — React Frontend** *(Jeel Prajapati)*
-- Admin dashboard with protected routes
-- JWT-based auth flow
-- Product, order, and user management screens
-
-**Module 3 — CI/CD Pipeline** *(Bhavy Shah)*
-- GitHub Actions workflow: Build → Test → Code Quality → Docker Build → Deploy
-- Triggers on every push to `main` branch
-- Pipeline status visible on GitHub Actions tab
-
-**Module 4 — Agentic AI Assistant (Capstone Extension)** *(Bhavy Shah & Jeel Prajapati)*
-- See [AI Assistant — Capstone Extension](#-ai-assistant--capstone-extension) below
-
+📦 Project Modules
+Module 1 — Spring Boot REST API (Member B)
+CRUD REST API built with Spring Boot
+Connected to AWS RDS (MySQL) database
+Unit tested with JUnit
+Endpoints: `GET /products`, `POST /products`, `PUT /products/{id}`, `DELETE /products/{id}`
+Module 2 — CI/CD Pipeline (Member A)
+Automated GitHub Actions workflow
+Stages: Build → Test → SonarQube → Docker Build → Push ECR → Deploy EC2
+Triggers on every push to `main` branch
+Pipeline status visible on GitHub Actions tab
+Module 3 — AWS Cloud Infrastructure (Member A)
+EC2 instances running Docker containers
+Application Load Balancer distributing traffic
+Auto Scaling Group scaling between 1–3 instances based on CPU
+AWS RDS for managed database
+AWS SNS for automated alerts
+Module 4 — Monitoring Dashboard (Member B)
+Python Flask web app
+Fetches live metrics from AWS CloudWatch using boto3
+Chart.js graphs: CPU usage, request count, response time
+Deployment history log
+Active instance counter
+Alert panel for threshold breaches
 ---
-
-## 🤖 AI Assistant — Capstone Extension
-
-**Title:** *CloudCart AI Assistant — Agentic AI-Powered Conversational System for Inventory, Order, and Delivery Management*
-
-### Problem Statement
-Admins currently must manually navigate multiple screens and filters to answer operational questions — stock levels, order status, delivery delays. There's no way to simply ask and get an answer, and no way to be proactively warned about issues before they become a problem.
-
-### Agent Architecture
-
-| Agent | Role |
-|---|---|
-| **Query Understanding Agent** | Parses the admin's natural language question and identifies intent (stock check, order lookup, delivery status, etc.) |
-| **Data Retrieval Agent** | Converts intent into a safe, parameterized request against the existing Spring Boot API — never raw/arbitrary SQL from the LLM |
-| **Response Agent** | Formats retrieved data into a clear, human-readable answer |
-| **Proactive Alert Agent** | Periodically scans for low-stock products or delayed deliveries and surfaces them without being asked — this is what makes the system "agentic" rather than a simple Q&A chatbot |
-
-### Example Interactions
-- *"How many units of Wireless Mouse are left in stock?"*
-- *"Show me all undelivered orders from the last 7 days"*
-- *"Which products need restocking soon?"*
-- *(Proactively, without being asked)* "⚠️ Product 'USB-C Cable' has dropped below 10 units — consider restocking."
-
-### Why This Approach
-- Reuses the existing Product/Order/User database — no new data model needed
-- Genuinely agentic (multi-step reasoning + proactive behavior), not just a single prompt wrapped in a chat UI
-- Directly matches the feature requested by faculty
-- Fully buildable and demoable without any cloud deployment — runs on the existing frontend + backend
-
----
-
-## 🔄 CI/CD Pipeline Flow (Planned)
-
+🔄 CI/CD Pipeline Flow
 ```yaml
 Trigger: Push to main branch
     │
@@ -171,129 +122,122 @@ Trigger: Push to main branch
     │       └── mvn test (JUnit)
     │
     ├── Stage 3: Code Quality
-    │       └── SonarQube scan (optional)
+    │       └── SonarQube scan
     │
     ├── Stage 4: Docker Build
-    │       └── docker build -t cloudcart-app .
+    │       └── docker build -t app .
     │
-    └── Stage 5: Deploy
-            └── Deploy container (target hosting TBD)
+    ├── Stage 5: Push to ECR
+    │       └── docker push → AWS ECR
+    │
+    └── Stage 6: Deploy
+            └── SSH into EC2 → docker pull → docker run
 ```
-
+Pipeline Status: 🟡 In Progress (Week 5)
 ---
-
-## 🚀 Getting Started
-
-### Prerequisites
+📊 Monitoring Dashboard
+The dashboard displays the following real-time widgets:
+Widget	Metric	Source
+CPU Usage Graph	% per EC2 instance (live)	AWS CloudWatch
+Request Count	API calls per minute	AWS CloudWatch
+Response Time	Average latency in ms	AWS CloudWatch
+Active Instances	Number of running EC2s	AWS Auto Scaling
+Deployment Log	Recent deploys with pass/fail	GitHub Actions API
+Alert Panel	Active warnings & errors	AWS CloudWatch Alarms
+---
+🚀 Getting Started
+Prerequisites
+Make sure you have these installed:
 ```
 Java 17+
 Maven 3.8+
-Node.js 18+
 Docker Desktop
+Python 3.10+
+AWS CLI (configured with IAM credentials)
 Git
 ```
-
-### Clone the Repository
+Clone the Repository
 ```bash
-git clone https://github.com/Bhavyshah23/cicd-pipeline-project-sem-9.git
-cd cicd-pipeline-project-sem-9
+git clone https://github.com/YOUR_ORG/cicd-pipeline-project.git
+cd cicd-pipeline-project
 ```
-
-### Run the Spring Boot Backend Locally
+Run the Spring Boot App Locally
 ```bash
-cd cicd-pipeline
+cd app
 mvn clean install
 mvn spring-boot:run
 ```
-API available at: `http://localhost:8080`
-
-### Run the React Frontend Locally
+API will be available at: `http://localhost:8080`
+Run with Docker Locally
 ```bash
-cd frontend
-npm install
-npm start
+docker build -t cicd-app .
+docker run -p 8080:8080 cicd-app
 ```
-Frontend available at: `http://localhost:3000`
-
-### Run with Docker (once Dockerized)
+Run the Monitoring Dashboard Locally
 ```bash
-docker build -t cloudcart-app .
-docker run -p 8080:8080 cloudcart-app
+cd dashboard
+pip install -r requirements.txt
+python app.py
 ```
-
+Dashboard will be available at: `http://localhost:5000`
 ---
-
-## 🔐 Environment Variables
-
+🔐 Environment Variables
 Create a `.env` file in the root directory (never commit this to GitHub):
-
 ```env
 # Database
-DB_HOST=localhost
+DB_HOST=your-rds-endpoint.amazonaws.com
 DB_PORT=3306
-DB_NAME=cloudcart
-DB_USERNAME=root
+DB_NAME=cicddb
+DB_USERNAME=admin
 DB_PASSWORD=your_password
 
-# AI Assistant
-LLM_API_KEY=your_llm_api_key
+# AWS
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=ap-south-1
+
+# SNS
+SNS_TOPIC_ARN=arn:aws:sns:ap-south-1:your_topic
 ```
-
-> ⚠️ **Important:** Add `.env` to your `.gitignore` — never push credentials or API keys to GitHub.
-
+> ⚠️ **Important:** Add `.env` to your `.gitignore` — never push credentials to GitHub.
 ---
-
-## 👥 Team Members
-
-| Name | Role | Responsibilities |
-|---|---|---|
-| Bhavy Shah | DevOps & AI Assistant Lead | CI/CD pipeline, Docker, AI Assistant architecture (agents, LLM integration) |
-| Jeel Prajapati | Backend & Frontend Developer | Spring Boot API, React frontend, database, monitoring |
-
-**Institution:** [Your Institution Name]
-**Program:** M.Sc. Information Technology — Cloud & Application Development
-**Academic Year:** 2025–2026
-
+👥 Team Members
+Name	Role	Responsibilities
+[Member A Name]	DevOps Engineer	GitHub Actions, Docker, AWS ECR, EC2, Load Balancer, Auto Scaling, SNS
+[Member B Name]	Developer & Monitor	Spring Boot API, AWS RDS, Python Dashboard, CloudWatch
+Institution: [CPC, Gujarat University]  
+Program: M.Sc. Information Technology  
+Subject: Cloud & Application Development  
+Academic Year: 2025–2026
 ---
-
-## 📅 Project Timeline
-
-| Week | Milestone | Status |
-|---|---|---|
-| 1 | GitHub setup + Spring Boot project + React frontend created | ✅ Done |
-| 2 | Backend/frontend integration, auth flow working | ✅ Done |
-| 3 | GitHub Actions pipeline: build + test stages | 🔄 In Progress |
-| 4 | Dockerize the application | ⏳ Upcoming |
-| 5 | Complete CI/CD pipeline (build → test → docker → deploy) | ⏳ Upcoming |
-| 6 | AI Assistant: Query Understanding + Data Retrieval agents | ⏳ Upcoming |
-| 7 | AI Assistant: Response generation + chat UI integration | ⏳ Upcoming |
-| 8 | AI Assistant: Proactive Alerts agent | ⏳ Upcoming |
-| 9 | End-to-end testing of chat assistant | ⏳ Upcoming |
-| 10 | Integration testing + bug fixes | ⏳ Upcoming |
-| 11 | Documentation + report writing | ⏳ Upcoming |
-| 12 | Final demo + report + PPT | ⏳ Upcoming |
-
+📅 Project Timeline
+Week	Milestone	Status
+1	GitHub setup + AWS account + Spring Boot project created	✅ Done
+2	Pipeline build/test stages + API local testing	🔄 In Progress
+3	SonarQube stage + API connected to RDS	⏳ Upcoming
+4	Docker build in pipeline + Dockerfile complete	⏳ Upcoming
+5	Docker push to ECR + EC2 launch	⏳ Upcoming
+6	Auto deploy to EC2 + Flask dashboard start	⏳ Upcoming
+7	Load Balancer + Auto Scaling + CloudWatch dashboard	⏳ Upcoming
+8	SNS alerts + dashboard graphs complete	⏳ Upcoming
+9	Load testing + auto scaling verification	⏳ Upcoming
+10	Full end-to-end testing	⏳ Upcoming
+11	Integration testing + bug fixes	⏳ Upcoming
+12	Final demo + report + PPT	⏳ Upcoming
 ---
-
-## 🔮 Future Enhancements
-
-Features considered but intentionally out of scope for this semester's submission:
-- **Terraform (Infrastructure as Code)** — automated AWS provisioning
-- **Cloud deployment** — AWS EC2/RDS or equivalent hosting
-- **Auto Scaling & Load Balancing** — for handling variable traffic
-- **CloudWatch-based monitoring dashboard**
-- **RAG-based customer-facing support chatbot** — grounded in live product/order data
-- **Multi-region deployment** for disaster recovery
-
+🔮 Future Enhancements
+Features planned for future versions beyond this academic submission:
+Terraform — Infrastructure as Code for automated AWS provisioning
+Kubernetes (EKS) — Container orchestration for larger scale
+Multi-region deployment — Disaster recovery across AWS regions
+Grafana integration — Advanced monitoring dashboards
+Slack notifications — Pipeline alerts directly in team chat
+Blue/Green deployment — Zero-downtime deployment strategy
 ---
-
-## 📄 License
-
+📄 License
 This project is developed for academic purposes under M.Sc. IT — Cloud & Application Development.
-
 ---
-
 <div align="center">
-  <b>Built with ❤️ by Bhavy Shah & Jeel Prajapati</b><br/>
+  <b>Built with ❤️ by [Member A Name] & [Member B Name]</b><br/>
   <i>M.Sc. IT | Cloud & Application Development | 2025–2026</i>
 </div>
