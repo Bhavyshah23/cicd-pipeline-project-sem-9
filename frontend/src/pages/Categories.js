@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../services/api';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import PageHeader from '../components/ui/PageHeader';
+import Modal from '../components/ui/Modal';
+import EmptyState from '../components/ui/EmptyState';
 
 const Categories = () => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editCategory, setEditCategory] = useState(null);
+    const [saving, setSaving] = useState(false);
     const [form, setForm] = useState({ name: '', description: '' });
 
     useEffect(() => { fetchCategories(); }, []);
@@ -33,6 +38,7 @@ const Categories = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSaving(true);
         try {
             if (editCategory) {
                 await updateCategory(editCategory.id, form);
@@ -45,6 +51,8 @@ const Categories = () => {
             fetchCategories();
         } catch (err) {
             toast.error(err.response?.data || 'Failed to save category');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -57,57 +65,63 @@ const Categories = () => {
         } catch { toast.error('Failed to delete category'); }
     };
 
-    if (loading) return <div className="loading">⏳ Loading Categories...</div>;
+    if (loading) return <LoadingSpinner message="Loading categories..." />;
 
     return (
         <div>
-            <div className="page-header">
-                <h1>🏷️ Categories</h1>
-                <button className="btn btn-primary" onClick={openAddModal}>➕ Add Category</button>
-            </div>
+            <PageHeader
+                title="Categories"
+                subtitle="Organize products into categories"
+                action={
+                    <button type="button" className="btn btn-primary" onClick={openAddModal}>Add Category</button>
+                }
+            />
 
-            <div className="grid">
-                {categories.map(category => (
-                    <div key={category.id} className="card" style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '12px' }}>🏷️</div>
-                        <h3 style={{ color: '#1F4E79', marginBottom: '8px' }}>{category.name}</h3>
-                        <p style={{ color: '#666', fontSize: '13px', marginBottom: '16px' }}>
-                            {category.description}
-                        </p>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                            <button className="btn btn-warning" style={{ padding: '6px 12px', fontSize: '12px' }}
-                                onClick={() => openEditModal(category)}>✏️ Edit</button>
-                            <button className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '12px' }}
-                                onClick={() => handleDelete(category.id)}>🗑️ Delete</button>
+            {categories.length === 0 ? (
+                <div className="card">
+                    <EmptyState
+                        icon="🏷️"
+                        title="No categories yet"
+                        description="Create your first category to organize products."
+                    />
+                </div>
+            ) : (
+                <div className="grid">
+                    {categories.map((category) => (
+                        <div key={category.id} className="card card-hover category-card">
+                            <div className="category-card-icon">{category.name.charAt(0).toUpperCase()}</div>
+                            <h3 style={{ color: 'var(--color-text)', marginBottom: '0.5rem' }}>{category.name}</h3>
+                            <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+                                {category.description || 'No description'}
+                            </p>
+                            <div className="category-card-actions">
+                                <button type="button" className="btn btn-warning btn-sm" onClick={() => openEditModal(category)}>Edit</button>
+                                <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(category.id)}>Delete</button>
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <h2>{editCategory ? '✏️ Edit Category' : '➕ Add Category'}</h2>
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label>Category Name *</label>
-                                <input required value={form.name}
-                                    onChange={e => setForm({...form, name: e.target.value})}
-                                    placeholder="e.g. Electronics" />
-                            </div>
-                            <div className="form-group">
-                                <label>Description</label>
-                                <input value={form.description}
-                                    onChange={e => setForm({...form, description: e.target.value})}
-                                    placeholder="Category description" />
-                            </div>
-                            <div className="modal-buttons">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-primary">{editCategory ? 'Update' : 'Create'}</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <Modal title={editCategory ? 'Edit Category' : 'Add Category'} onClose={() => setShowModal(false)}>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label>Category Name *</label>
+                            <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Electronics" disabled={saving} />
+                        </div>
+                        <div className="form-group">
+                            <label>Description</label>
+                            <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Category description" disabled={saving} />
+                        </div>
+                        <div className="modal-buttons">
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} disabled={saving}>Cancel</button>
+                            <button type="submit" className="btn btn-primary" disabled={saving}>
+                                {saving ? 'Saving...' : editCategory ? 'Update' : 'Create'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
             )}
         </div>
     );

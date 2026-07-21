@@ -5,6 +5,10 @@ import {
     getProducts, createProduct, updateProduct,
     deleteProduct, getCategories, searchProducts
 } from '../services/api';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import PageHeader from '../components/ui/PageHeader';
+import Modal from '../components/ui/Modal';
+import EmptyState from '../components/ui/EmptyState';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
@@ -13,6 +17,7 @@ const Products = () => {
     const [showModal, setShowModal] = useState(false);
     const [editProduct, setEditProduct] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [saving, setSaving] = useState(false);
     const [form, setForm] = useState({
         name: '', description: '', price: '', quantity: '', categoryId: ''
     });
@@ -59,6 +64,7 @@ const Products = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSaving(true);
         try {
             const payload = {
                 name: form.name,
@@ -78,6 +84,8 @@ const Products = () => {
             fetchData();
         } catch (err) {
             toast.error('Failed to save product');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -90,111 +98,124 @@ const Products = () => {
         } catch { toast.error('Failed to delete'); }
     };
 
-    if (loading) return <div className="loading">⏳ Loading Products...</div>;
+    if (loading) return <LoadingSpinner message="Loading products..." />;
 
     return (
         <div>
-            <div className="page-header">
-                <h1>📦 Products</h1>
-                <button className="btn btn-primary" onClick={openAddModal}>
-                    ➕ Add Product
-                </button>
-            </div>
+            <PageHeader
+                title="Products"
+                subtitle="Manage your product catalog"
+                action={
+                    <button type="button" className="btn btn-primary" onClick={openAddModal}>
+                        Add Product
+                    </button>
+                }
+            />
 
             <div className="search-bar">
                 <input
                     type="text"
                     placeholder="Search products..."
                     value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    onKeyPress={e => e.key === 'Enter' && handleSearch()}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
-                <button className="btn btn-primary" onClick={handleSearch}>🔍 Search</button>
-                <button className="btn btn-secondary" onClick={() => { setSearchTerm(''); fetchData(); }}>Clear</button>
+                <button type="button" className="btn btn-primary" onClick={handleSearch}>Search</button>
+                <button type="button" className="btn btn-secondary" onClick={() => { setSearchTerm(''); fetchData(); }}>Clear</button>
             </div>
 
             <div className="card">
-                <div className="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Category</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {products.map(product => (
-                                <tr key={product.id}>
-                                    <td>{product.id}</td>
-                                    <td><strong>{product.name}</strong></td>
-                                    <td>{product.description?.substring(0, 40)}...</td>
-                                    <td><strong style={{ color: '#28a745' }}>₹{product.price}</strong></td>
-                                    <td>
-                                        <span className={`badge ${product.quantity > 5 ? 'badge-success' : product.quantity > 0 ? 'badge-warning' : 'badge-danger'}`}>
-                                            {product.quantity}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {product.category ?
-                                            <span className="badge badge-info">{product.category.name}</span>
-                                            : '-'}
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: '6px' }}>
-                                            <Link to={`/products/${product.id}`} className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px' }}>👁️</Link>
-                                            <button className="btn btn-warning" style={{ padding: '6px 10px', fontSize: '12px' }} onClick={() => openEditModal(product)}>✏️</button>
-                                            <button className="btn btn-danger" style={{ padding: '6px 10px', fontSize: '12px' }} onClick={() => handleDelete(product.id)}>🗑️</button>
-                                        </div>
-                                    </td>
+                {products.length === 0 ? (
+                    <EmptyState
+                        icon="📦"
+                        title="No products found"
+                        description={searchTerm ? 'Try a different search term.' : 'Add your first product to get started.'}
+                    />
+                ) : (
+                    <div className="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Category</th>
+                                    <th>Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {products.map((product) => (
+                                    <tr key={product.id}>
+                                        <td>{product.id}</td>
+                                        <td><strong>{product.name}</strong></td>
+                                        <td>{product.description?.substring(0, 40)}...</td>
+                                        <td><strong style={{ color: 'var(--color-success)' }}>₹{product.price}</strong></td>
+                                        <td>
+                                            <span className={`badge ${product.quantity > 5 ? 'badge-success' : product.quantity > 0 ? 'badge-warning' : 'badge-danger'}`}>
+                                                {product.quantity}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {product.category
+                                                ? <span className="badge badge-info">{product.category.name}</span>
+                                                : '-'}
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: '0.375rem' }}>
+                                                <Link to={`/products/${product.id}`} className="btn btn-secondary btn-sm">View</Link>
+                                                <button type="button" className="btn btn-warning btn-sm" onClick={() => openEditModal(product)}>Edit</button>
+                                                <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(product.id)}>Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <h2>{editProduct ? '✏️ Edit Product' : '➕ Add Product'}</h2>
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label>Product Name *</label>
-                                <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Enter product name" />
-                            </div>
-                            <div className="form-group">
-                                <label>Description *</label>
-                                <input required value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Enter description" />
-                            </div>
-                            <div className="form-group">
-                                <label>Price (₹) *</label>
-                                <input required type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} placeholder="Enter price" />
-                            </div>
-                            <div className="form-group">
-                                <label>Quantity *</label>
-                                <input required type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} placeholder="Enter quantity" />
-                            </div>
-                            <div className="form-group">
-                                <label>Category</label>
-                                <select value={form.categoryId} onChange={e => setForm({...form, categoryId: e.target.value})}>
-                                    <option value="">-- Select Category --</option>
-                                    {categories.map(c => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="modal-buttons">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-primary">{editProduct ? 'Update' : 'Create'}</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <Modal
+                    title={editProduct ? 'Edit Product' : 'Add Product'}
+                    onClose={() => setShowModal(false)}
+                >
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label>Product Name *</label>
+                            <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter product name" disabled={saving} />
+                        </div>
+                        <div className="form-group">
+                            <label>Description *</label>
+                            <input required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Enter description" disabled={saving} />
+                        </div>
+                        <div className="form-group">
+                            <label>Price (₹) *</label>
+                            <input required type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="Enter price" disabled={saving} />
+                        </div>
+                        <div className="form-group">
+                            <label>Quantity *</label>
+                            <input required type="number" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} placeholder="Enter quantity" disabled={saving} />
+                        </div>
+                        <div className="form-group">
+                            <label>Category</label>
+                            <select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} disabled={saving}>
+                                <option value="">-- Select Category --</option>
+                                {categories.map((c) => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="modal-buttons">
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} disabled={saving}>Cancel</button>
+                            <button type="submit" className="btn btn-primary" disabled={saving}>
+                                {saving ? 'Saving...' : editProduct ? 'Update' : 'Create'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
             )}
         </div>
     );

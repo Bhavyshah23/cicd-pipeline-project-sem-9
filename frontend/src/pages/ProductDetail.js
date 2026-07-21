@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getProductById, createOrder, getUsers } from '../services/api';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import Modal from '../components/ui/Modal';
+import EmptyState from '../components/ui/EmptyState';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -10,6 +13,7 @@ const ProductDetail = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showOrderModal, setShowOrderModal] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [orderForm, setOrderForm] = useState({ userId: '', quantity: 1 });
 
     useEffect(() => {
@@ -26,96 +30,112 @@ const ProductDetail = () => {
 
     const handleOrder = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
             await createOrder({
                 user: { id: parseInt(orderForm.userId) },
                 product: { id: product.id },
                 quantity: parseInt(orderForm.quantity)
             });
-            toast.success('Order placed successfully! 🎉');
+            toast.success('Order placed successfully!');
             setShowOrderModal(false);
             navigate('/orders');
         } catch (err) {
             toast.error(err.response?.data || 'Failed to place order');
+        } finally {
+            setSubmitting(false);
         }
     };
 
-    if (loading) return <div className="loading">⏳ Loading...</div>;
-    if (!product) return <div className="loading">Product not found</div>;
+    if (loading) return <LoadingSpinner message="Loading product..." />;
+
+    if (!product) {
+        return (
+            <EmptyState
+                icon="📦"
+                title="Product not found"
+                description="The product you are looking for does not exist."
+            />
+        );
+    }
 
     return (
         <div>
-            <button className="btn btn-secondary" style={{ marginBottom: '20px' }} onClick={() => navigate('/products')}>
+            <button type="button" className="btn btn-secondary" style={{ marginBottom: '1.25rem' }} onClick={() => navigate('/products')}>
                 ← Back to Products
             </button>
 
             <div className="card">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-                    <div style={{ textAlign: 'center', padding: '40px', background: '#f8f9fa', borderRadius: '10px' }}>
-                        <div style={{ fontSize: '80px' }}>📦</div>
+                <div className="product-detail-grid">
+                    <div>
+                        <div className="product-detail-image">Product Image</div>
                         {product.category && (
-                            <span className="badge badge-info" style={{ marginTop: '12px', display: 'inline-block' }}>
-                                {product.category.name}
-                            </span>
+                            <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                                <span className="badge badge-info">{product.category.name}</span>
+                            </div>
                         )}
                     </div>
                     <div>
-                        <h1 style={{ color: '#1F4E79', marginBottom: '12px' }}>{product.name}</h1>
-                        <p style={{ color: '#666', marginBottom: '20px', lineHeight: '1.6' }}>{product.description}</p>
-                        <div style={{ fontSize: '36px', fontWeight: '700', color: '#28a745', marginBottom: '16px' }}>
-                            ₹{product.price}
-                        </div>
-                        <div style={{ marginBottom: '24px' }}>
+                        <h1 style={{ fontSize: 'var(--font-size-2xl)', marginBottom: '0.75rem' }}>{product.name}</h1>
+                        <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.25rem', lineHeight: 1.6 }}>{product.description}</p>
+                        <div className="product-detail-price">₹{product.price}</div>
+                        <div style={{ marginBottom: '1.5rem' }}>
                             <span className={`badge ${product.quantity > 5 ? 'badge-success' : product.quantity > 0 ? 'badge-warning' : 'badge-danger'}`}
-                                style={{ fontSize: '14px', padding: '6px 14px' }}>
+                                style={{ fontSize: 'var(--font-size-sm)', padding: '0.375rem 0.875rem' }}>
                                 {product.quantity > 0 ? `${product.quantity} in stock` : 'Out of Stock'}
                             </span>
                         </div>
+                        <div className="product-card-rating" style={{ marginBottom: '1.5rem' }}>★★★★☆ 4.0 rating</div>
                         <button
-                            className="btn btn-primary"
+                            type="button"
+                            className="btn btn-primary btn-lg"
                             disabled={product.quantity === 0}
                             onClick={() => setShowOrderModal(true)}
-                            style={{ fontSize: '16px', padding: '12px 30px' }}
                         >
-                            🛒 Place Order
+                            Place Order
                         </button>
                     </div>
                 </div>
             </div>
 
             {showOrderModal && (
-                <div className="modal-overlay" onClick={() => setShowOrderModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <h2>🛒 Place Order</h2>
-                        <p style={{ color: '#666', marginBottom: '20px' }}>
-                            Ordering: <strong>{product.name}</strong> @ ₹{product.price}
-                        </p>
-                        <form onSubmit={handleOrder}>
-                            <div className="form-group">
-                                <label>Select Customer *</label>
-                                <select required value={orderForm.userId} onChange={e => setOrderForm({...orderForm, userId: e.target.value})}>
-                                    <option value="">-- Select Customer --</option>
-                                    {users.map(u => (
-                                        <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label>Quantity *</label>
-                                <input type="number" min="1" max={product.quantity} required
-                                    value={orderForm.quantity}
-                                    onChange={e => setOrderForm({...orderForm, quantity: e.target.value})} />
-                            </div>
-                            <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginBottom: '16px' }}>
-                                <strong>Total: ₹{(product.price * orderForm.quantity).toFixed(2)}</strong>
-                            </div>
-                            <div className="modal-buttons">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowOrderModal(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-success">✅ Confirm Order</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <Modal title="Place Order" onClose={() => setShowOrderModal(false)}>
+                    <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.25rem' }}>
+                        Ordering: <strong>{product.name}</strong> @ ₹{product.price}
+                    </p>
+                    <form onSubmit={handleOrder}>
+                        <div className="form-group">
+                            <label>Select Customer *</label>
+                            <select required value={orderForm.userId} onChange={(e) => setOrderForm({ ...orderForm, userId: e.target.value })} disabled={submitting}>
+                                <option value="">-- Select Customer --</option>
+                                {users.map((u) => (
+                                    <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Quantity *</label>
+                            <input
+                                type="number"
+                                min="1"
+                                max={product.quantity}
+                                required
+                                value={orderForm.quantity}
+                                onChange={(e) => setOrderForm({ ...orderForm, quantity: e.target.value })}
+                                disabled={submitting}
+                            />
+                        </div>
+                        <div style={{ background: 'var(--color-bg)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', marginBottom: '1rem', border: '1px solid var(--color-border)' }}>
+                            <strong>Total: ₹{(product.price * orderForm.quantity).toFixed(2)}</strong>
+                        </div>
+                        <div className="modal-buttons">
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowOrderModal(false)} disabled={submitting}>Cancel</button>
+                            <button type="submit" className="btn btn-success" disabled={submitting}>
+                                {submitting ? 'Placing...' : 'Confirm Order'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
             )}
         </div>
     );
