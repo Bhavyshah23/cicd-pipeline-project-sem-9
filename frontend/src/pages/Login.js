@@ -19,7 +19,7 @@ const Login = () => {
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('adminUser', res.data.username);
             toast.success(`Welcome back, ${res.data.username}!`);
-            navigate('/');
+            navigate('/home');
         } catch (err) {
             toast.error(err.response?.data?.error || 'Login failed!');
         } finally {
