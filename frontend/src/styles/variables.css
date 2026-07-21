@@ -1,76 +1,11 @@
 :root {
-  /* Brand */
-  --color-primary: #2563eb;
-  --color-primary-dark: #1d4ed8;
-  --color-primary-light: #dbeafe;
-  --color-accent: #0ea5e9;
-
-  /* Neutrals */
-  --color-bg: #f1f5f9;
-  --color-surface: #ffffff;
-  --color-border: #e2e8f0;
-  --color-border-strong: #cbd5e1;
-  --color-text: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
-
-  /* Semantic */
-  --color-success: #16a34a;
-  --color-success-bg: #dcfce7;
-  --color-success-text: #166534;
-  --color-warning: #d97706;
-  --color-warning-bg: #fef3c7;
-  --color-warning-text: #92400e;
-  --color-danger: #dc2626;
-  --color-danger-bg: #fee2e2;
-  --color-danger-text: #991b1b;
-  --color-info: #0284c7;
-  --color-info-bg: #e0f2fe;
-  --color-info-text: #075985;
-
-  /* Typography */
-  --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --line-height-tight: 1.25;
-  --line-height-normal: 1.5;
-
-  /* Spacing */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-
-  /* Layout */
-  --max-width: 1280px;
-  --navbar-height: 64px;
-
-  /* Radius & shadow */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-full: 9999px;
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
-  --shadow-navbar: 0 2px 12px rgba(15, 23, 42, 0.1);
-
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 200ms ease;
+  --ink-950: #101828; --ink-900: #182230; --ink-800: #293545; --ink-700: #3e4c5e; --ink-600: #536174; --ink-500: #6b7789; --ink-400: #98a2b3; --ink-300: #d0d5dd; --ink-200: #e4e7ec; --ink-100: #f2f4f7; --ink-50: #f8f9fc;
+  --violet-700: #5b42d6; --violet-600: #6d4aff; --violet-500: #7c5cff; --violet-100: #ece9ff; --violet-50: #f5f3ff;
+  --green-700: #087443; --green-100: #d8f7e7; --amber-700: #9a6700; --amber-100: #fff0c2; --red-700: #b42318; --red-100: #fee4e2; --blue-700: #175cd3; --blue-100: #dbeafe;
+  --color-primary: var(--violet-600); --color-primary-dark: var(--violet-700); --color-primary-light: var(--violet-100); --color-accent: var(--violet-500);
+  --color-bg: var(--ink-50); --color-surface: #fff; --color-border: var(--ink-200); --color-border-strong: var(--ink-300); --color-text: var(--ink-950); --color-text-secondary: var(--ink-600); --color-text-muted: var(--ink-500);
+  --color-success: var(--green-700); --color-success-bg: var(--green-100); --color-success-text: var(--green-700); --color-warning: var(--amber-700); --color-warning-bg: var(--amber-100); --color-warning-text: var(--amber-700); --color-danger: var(--red-700); --color-danger-bg: var(--red-100); --color-danger-text: var(--red-700); --color-info: var(--blue-700); --color-info-bg: var(--blue-100); --color-info-text: var(--blue-700);
+  --font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --font-size-xs: .75rem; --font-size-sm: .875rem; --font-size-base: 1rem; --font-size-lg: 1.125rem; --font-size-xl: 1.25rem; --font-size-2xl: 1.5rem; --font-size-3xl: 1.875rem; --font-size-4xl: 2.25rem; --font-weight-normal: 400; --font-weight-medium: 500; --font-weight-semibold: 600; --font-weight-bold: 700; --line-height-tight: 1.18; --line-height-normal: 1.5;
+  --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-7: 1.75rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem; --space-16: 4rem;
+  --max-width: 1340px; --navbar-height: 72px; --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 22px; --radius-full: 999px; --shadow-sm: 0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.08); --shadow-md: 0 10px 22px rgba(16,24,40,.08); --shadow-lg: 0 24px 48px rgba(16,24,40,.13); --shadow-navbar: 0 1px 0 rgba(16,24,40,.06); --transition-fast: 150ms ease; --transition-base: 220ms cubic-bezier(.2,.8,.2,1);
 }

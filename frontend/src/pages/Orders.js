@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { getOrders, updateOrderStatus, deleteOrder, getTotalRevenue } from '../services/api';
+import { getOrders, updateOrderStatus, deleteOrder, getTotalRevenue, getUsers, getProducts, createOrder } from '../services/api';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import PageHeader from '../components/ui/PageHeader';
 import Modal from '../components/ui/Modal';
@@ -14,6 +14,11 @@ const Orders = () => {
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const [showNewOrderModal, setShowNewOrderModal] = useState(false);
+    const [users, setUsers] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [newOrder, setNewOrder] = useState({ userId: '', productId: '', quantity: 1 });
+    const [savingOrder, setSavingOrder] = useState(false);
 
     useEffect(() => { fetchOrders(); }, []);
 
@@ -49,6 +54,51 @@ const Orders = () => {
         setShowDetailModal(true);
     };
 
+    const handleCopyOrderId = async (id) => {
+        try {
+            await navigator.clipboard.writeText(String(id));
+            toast.success(`Order #${id} copied to clipboard`);
+        } catch {
+            toast.error('Unable to copy order ID');
+        }
+    };
+
+    const handlePrintOrder = () => window.print();
+
+    const openNewOrderModal = async () => {
+        try {
+            const [usersResponse, productsResponse] = await Promise.all([getUsers(), getProducts()]);
+            setUsers(usersResponse.data);
+            setProducts(productsResponse.data);
+            setNewOrder({ userId: '', productId: '', quantity: 1 });
+            setShowNewOrderModal(true);
+        } catch {
+            toast.error('Failed to load customers and products');
+        }
+    };
+
+    const selectedProduct = products.find((product) => String(product.id) === String(newOrder.productId));
+    const orderTotal = selectedProduct ? Number(selectedProduct.price) * Number(newOrder.quantity || 0) : 0;
+
+    const handleCreateOrder = async (event) => {
+        event.preventDefault();
+        setSavingOrder(true);
+        try {
+            await createOrder({
+                user: { id: Number(newOrder.userId) },
+                product: { id: Number(newOrder.productId) },
+                quantity: Number(newOrder.quantity)
+            });
+            toast.success('Order created!');
+            setShowNewOrderModal(false);
+            fetchOrders();
+        } catch (err) {
+            toast.error(err.response?.data || 'Failed to create order');
+        } finally {
+            setSavingOrder(false);
+        }
+    };
+
     const filteredOrders = filterStatus === 'ALL'
         ? orders
         : orders.filter((o) => o.status === filterStatus);
@@ -79,8 +129,9 @@ const Orders = () => {
                 title="Order Management"
                 subtitle="Track and manage customer orders"
                 action={
-                    <div className="revenue-banner">
-                        Total Revenue: ₹{revenue.toFixed(2)}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <div className="revenue-banner">Total Revenue: ₹{revenue.toFixed(2)}</div>
+                        <button type="button" className="btn btn-primary" onClick={openNewOrderModal}>New Order</button>
                     </div>
                 }
             />
@@ -197,14 +248,27 @@ const Orders = () => {
                     onClose={() => setShowDetailModal(false)}
                     size="large"
                 >
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', marginTop: '-0.5rem' }}>
-                        <span className={`badge ${getStatusBadge(selectedOrder.status)}`} style={{ fontSize: 'var(--font-size-sm)', padding: '0.375rem 0.875rem' }}>
-                            {selectedOrder.status}
-                        </span>
+                    <div className="order-detail-header">
+                        <div>
+                            <span className="order-detail-kicker">Order reference</span>
+                            <div className="order-detail-id-row">
+                                <strong>#{selectedOrder.id}</strong>
+                                <button type="button" className="order-detail-text-action" onClick={() => handleCopyOrderId(selectedOrder.id)}>Copy ID</button>
+                            </div>
+                        </div>
+                        <span className={`badge order-status-badge ${getStatusBadge(selectedOrder.status)}`}>{selectedOrder.status}</span>
                     </div>
 
-                    <div className="detail-section detail-section-info">
-                        <h3 className="detail-section-title">Customer Information</h3>
+                    <ol className={`order-status-timeline ${selectedOrder.status === 'CANCELLED' ? 'is-cancelled' : ''}`} aria-label="Order status progress">
+                        {['PENDING', 'CONFIRMED', 'DELIVERED'].map((stage, index) => {
+                            const currentIndex = ['PENDING', 'CONFIRMED', 'DELIVERED'].indexOf(selectedOrder.status);
+                            return <li key={stage} className={index <= currentIndex ? 'is-complete' : ''}><span>{index + 1}</span>{stage.charAt(0) + stage.slice(1).toLowerCase()}</li>;
+                        })}
+                    </ol>
+                    {selectedOrder.status === 'CANCELLED' && <p className="order-cancelled-note">This order has been cancelled.</p>}
+
+                    <section className="detail-section detail-section-info order-detail-section">
+                        <h3 className="detail-section-title">Customer information</h3>
                         <div className="detail-section-grid">
                             <div className="detail-field">
                                 <label>Full Name</label>
@@ -223,10 +287,10 @@ const Orders = () => {
                                 <p>{selectedOrder.user?.address || '-'}</p>
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div className="detail-section detail-section-neutral">
-                        <h3 className="detail-section-title">Product Information</h3>
+                    <section className="detail-section detail-section-neutral order-detail-section">
+                        <h3 className="detail-section-title">Product information</h3>
                         <div className="detail-section-grid">
                             <div className="detail-field">
                                 <label>Product Name</label>
@@ -238,32 +302,34 @@ const Orders = () => {
                             </div>
                             <div className="detail-field">
                                 <label>Unit Price</label>
-                                <p style={{ color: 'var(--color-success)' }}>₹{selectedOrder.product?.price}</p>
+                                <p className="order-price-value">₹{selectedOrder.product?.price}</p>
                             </div>
                             <div className="detail-field">
                                 <label>Quantity Ordered</label>
                                 <p>{selectedOrder.quantity} units</p>
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div className="detail-section detail-section-success">
-                        <h3 className="detail-section-title">Order Summary</h3>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <section className="detail-section detail-section-success order-detail-summary">
+                        <h3 className="detail-section-title">Order summary</h3>
+                        <div className="order-summary-content">
                             <div className="detail-field">
                                 <label>Order Date</label>
                                 <p>{selectedOrder.orderDate ? new Date(selectedOrder.orderDate).toLocaleString('en-IN') : '-'}</p>
                             </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <label style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-success-text)' }}>Total Amount</label>
-                                <p style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-success-text)' }}>
+                            <div className="order-total">
+                                <label>Total amount</label>
+                                <p>
                                     ₹{selectedOrder.totalPrice}
                                 </p>
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div className="modal-buttons">
+                    <div className="order-modal-footer">
+                        <p className="order-modal-shortcut"><kbd>Esc</kbd> closes this window</p>
+                        <div className="modal-buttons">
                         {selectedOrder.status === 'PENDING' && (
                             <>
                                 <button type="button" className="btn btn-success" onClick={() => { handleStatusUpdate(selectedOrder.id, 'CONFIRMED'); setShowDetailModal(false); }}>Confirm Order</button>
@@ -273,9 +339,47 @@ const Orders = () => {
                         {selectedOrder.status === 'CONFIRMED' && (
                             <button type="button" className="btn btn-primary" onClick={() => { handleStatusUpdate(selectedOrder.id, 'DELIVERED'); setShowDetailModal(false); }}>Mark as Delivered</button>
                         )}
+                        <button type="button" className="btn btn-secondary" onClick={handlePrintOrder}>Print</button>
                         <button type="button" className="btn btn-danger" onClick={() => handleDelete(selectedOrder.id)}>Delete Order</button>
                         <button type="button" className="btn btn-secondary" onClick={() => setShowDetailModal(false)}>Close</button>
+                        </div>
                     </div>
+                </Modal>
+            )}
+
+            {showNewOrderModal && (
+                <Modal title="Create New Order" onClose={() => setShowNewOrderModal(false)}>
+                    <form onSubmit={handleCreateOrder}>
+                        <div className="form-group">
+                            <label htmlFor="order-user">Customer *</label>
+                            <select id="order-user" required value={newOrder.userId} onChange={(event) => setNewOrder({ ...newOrder, userId: event.target.value })} disabled={savingOrder}>
+                                <option value="">Select a customer</option>
+                                {users.map((user) => <option key={user.id} value={user.id}>{user.name} ({user.email})</option>)}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="order-product">Product *</label>
+                            <select id="order-product" required value={newOrder.productId} onChange={(event) => setNewOrder({ ...newOrder, productId: event.target.value })} disabled={savingOrder}>
+                                <option value="">Select a product</option>
+                                {products.map((product) => <option key={product.id} value={product.id}>{product.name} — ₹{product.price}</option>)}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="order-quantity">Quantity *</label>
+                            <input id="order-quantity" type="number" min="1" max={selectedProduct?.quantity || undefined} required value={newOrder.quantity} onChange={(event) => setNewOrder({ ...newOrder, quantity: event.target.value })} disabled={savingOrder} />
+                            {selectedProduct && <small style={{ display: 'block', marginTop: '0.375rem', color: 'var(--color-text-muted)' }}>{selectedProduct.quantity} available in stock</small>}
+                        </div>
+                        <div className="detail-section detail-section-success">
+                            <div className="detail-field">
+                                <label>Estimated total</label>
+                                <p style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-success-text)' }}>₹{orderTotal.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <div className="modal-buttons">
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowNewOrderModal(false)} disabled={savingOrder}>Cancel</button>
+                            <button type="submit" className="btn btn-primary" disabled={savingOrder}>{savingOrder ? 'Creating...' : 'Create Order'}</button>
+                        </div>
+                    </form>
                 </Modal>
             )}
         </div>

@@ -3,6 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getOrders } from '../services/api';
 
+const icons = {
+    Home: '⌂', Products: '▦', Categories: '◇', Orders: '▣', Users: '◉'
+};
+
 const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -14,13 +18,11 @@ const Navbar = () => {
         const fetchPendingOrders = async () => {
             try {
                 const res = await getOrders();
-                const pending = res.data.filter((order) => order.status === 'PENDING').length;
-                setPendingCount(pending);
-            } catch {
-                // Silently fail — navbar should not block the app
-            }
+                setPendingCount(res.data.filter((order) => order.status === 'PENDING').length);
+            } catch { /* The navigation should remain usable if this supporting request fails. */ }
         };
         fetchPendingOrders();
+        setMenuOpen(false);
     }, [location.pathname]);
 
     const handleLogout = () => {
@@ -37,67 +39,32 @@ const Navbar = () => {
         { path: '/orders', label: 'Orders' },
         { path: '/users', label: 'Users' },
     ];
-
-    const isActive = (path, exact = false) => {
-        if (exact) return location.pathname === path;
-        return location.pathname.startsWith(path);
-    };
-
-    const closeMenu = () => setMenuOpen(false);
+    const isActive = (path, exact) => exact ? location.pathname === path : location.pathname.startsWith(path);
 
     return (
         <nav className="navbar">
             <div className="navbar-inner">
-                <Link to="/" className="navbar-brand" onClick={closeMenu}>
-                    <span className="navbar-brand-mark">CS</span>
-                    CloudShop Admin
+                <Link to="/" className="navbar-brand">
+                    <span className="navbar-brand-mark">C</span>
+                    <span>CloudCart <small>ADMIN</small></span>
                 </Link>
-
-                <button
-                    type="button"
-                    className="navbar-toggle"
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    aria-label="Toggle navigation menu"
-                    aria-expanded={menuOpen}
-                >
-                    ☰
+                <button type="button" className="navbar-toggle" onClick={() => setMenuOpen((open) => !open)} aria-label="Toggle navigation menu" aria-expanded={menuOpen}>
+                    <span /><span /><span />
                 </button>
-
                 <div className={`navbar-nav-wrapper ${menuOpen ? 'open' : ''}`}>
                     <div className="navbar-nav">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.path}
-                                to={link.path}
-                                className={`navbar-link ${isActive(link.path, link.exact) ? 'active' : ''}`}
-                                onClick={closeMenu}
-                            >
-                                {link.label}
-                            </Link>
-                        ))}
-
+                        <div className="navbar-links">
+                            {navLinks.map((link) => (
+                                <Link key={link.path} to={link.path} className={`navbar-link ${isActive(link.path, link.exact) ? 'active' : ''}`}>
+                                    <span className="nav-icon" aria-hidden="true">{icons[link.label]}</span>{link.label}
+                                    {link.label === 'Orders' && pendingCount > 0 && <span className="navbar-badge">{pendingCount}</span>}
+                                </Link>
+                            ))}
+                        </div>
                         <div className="navbar-actions">
-                            <Link
-                                to="/orders"
-                                className={`navbar-orders-link ${location.pathname === '/orders' ? 'active' : ''}`}
-                                title="Pending orders"
-                                onClick={closeMenu}
-                            >
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                                    <line x1="3" y1="6" x2="21" y2="6" />
-                                    <path d="M16 10a4 4 0 0 1-8 0" />
-                                </svg>
-                                {pendingCount > 0 && (
-                                    <span className="navbar-badge">{pendingCount}</span>
-                                )}
-                            </Link>
-
-                            <span className="navbar-user">{adminUser}</span>
-
-                            <button type="button" className="btn btn-secondary btn-sm" onClick={handleLogout}>
-                                Logout
-                            </button>
+                            <span className="user-avatar" aria-hidden="true">{adminUser?.charAt(0).toUpperCase() || 'A'}</span>
+                            <span className="navbar-user">{adminUser || 'Administrator'}</span>
+                            <button type="button" className="btn btn-ghost btn-sm" onClick={handleLogout}>Sign out</button>
                         </div>
                     </div>
                 </div>
